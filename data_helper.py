@@ -8,10 +8,11 @@ import json
 import collections
 
 import numpy as np
+
 from tensorflow.contrib import learn
 
 
-def load_data(file_path, sw_path=None, min_frequency=0, max_length=0, language='ch', vocab_processor=None, shuffle=True):
+def load_data(file_path, sw_path=None, min_frequency=0, max_length=0, language='en', vocab_processor=None, shuffle=True):
     """
     Build dataset for mini-batch iterator
     :param file_path: Data file path
@@ -42,9 +43,7 @@ def load_data(file_path, sw_path=None, min_frequency=0, max_length=0, language='
         for line in incsv:
             sent = line[content_idx].strip()
 
-            if language == 'ch':
-                sent = _tradition_2_simple(sent)  # Convert traditional Chinese to simplified Chinese
-            elif language == 'en':
+            if language == 'en':
                 sent = sent.lower()
             else:
                 raise ValueError('language should be one of [ch, en].')
@@ -53,9 +52,6 @@ def load_data(file_path, sw_path=None, min_frequency=0, max_length=0, language='
 
             if len(sent) < 1:
                 continue
-
-            if language == 'ch':
-                sent = _word_segmentation(sent)
             sentences.append(sent)
 
             if int(line[label_idx]) < 0:
@@ -123,27 +119,6 @@ def batch_iter(data, labels, lengths, batch_size, num_epochs):
 
 # --------------- Private Methods ---------------
 
-def _tradition_2_simple(sent):
-    """ Convert Traditional Chinese to Simplified Chinese """
-    # Please download langconv.py and zh_wiki.py first
-    # langconv.py and zh_wiki.py are used for converting between languages
-    try:
-        import langconv
-    except ImportError as e:
-        error = "Please download langconv.py and zh_wiki.py at "
-        error += "https://github.com/skydark/nstools/tree/master/zhtools."
-        print(str(e) + ': ' + error)
-        sys.exit()
-
-    return langconv.Converter('zh-hans').convert(sent)
-
-
-def _word_segmentation(sent):
-    """ Tokenizer for Chinese """
-    import jieba
-    sent = ' '.join(list(jieba.cut(sent, cut_all=False, HMM=True)))
-    return re.sub(r'\s+', ' ', sent)
-
 
 def _stop_words(path):
     with open(path, 'r', encoding='utf-8') as f:
@@ -154,15 +129,8 @@ def _stop_words(path):
     return set(sw)
 
 
-def _clean_data(sent, sw, language='ch'):
+def _clean_data(sent, sw, language='en'):
     """ Remove special characters and stop words """
-    if language == 'ch':
-        sent = re.sub(r"[^\u4e00-\u9fa5A-z0-9！？，。]", " ", sent)
-        sent = re.sub('！{2,}', '！', sent)
-        sent = re.sub('？{2,}', '！', sent)
-        sent = re.sub('。{2,}', '。', sent)
-        sent = re.sub('，{2,}', '，', sent)
-        sent = re.sub('\s{2,}', ' ', sent)
     if language == 'en':
         sent = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", sent)
         sent = re.sub(r"\'s", " \'s", sent)

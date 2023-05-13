@@ -1,14 +1,46 @@
-# -*- coding: utf-8 -*-
-import numpy as np
-import tensorflow as tf
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 
 
-class clstm_clf(object):
+class Attention(nn.Module):
+    """
+    A simple attention layer
+    """
+
+    def __init__(self, hidden_size):
+        super(Attention, self).__init__()
+        self.hidden_size = hidden_size
+        self.attention = nn.Linear(hidden_size, 1)
+
+    def forward(self, inputs, mask=None):
+        # Compute attention scores
+        scores = self.attention(inputs)
+        scores = scores.squeeze(-1)
+
+        # Mask padding tokens
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, -1e9)
+
+        # Compute attention weights
+        weights = nn.functional.softmax(scores, dim=-1)
+
+        # Apply attention weights to input sequence
+        output = torch.bmm(inputs.transpose(1, 2), weights.unsqueeze(-1))
+        output = output.squeeze(-1)
+
+        return output, weights
+
+
+class CLSTM(nn.Module):
     """
     A C-LSTM classifier for text classification
     Reference: A C-LSTM Neural Network for Text Classification
     """
+
     def __init__(self, config):
+        super(CLSTM, self).__init__()
         self.max_length = config.max_length
         self.num_classes = config.num_classes
         self.vocab_size = config.vocab_size
@@ -19,101 +51,94 @@ class clstm_clf(object):
         self.num_layers = config.num_layers
         self.l2_reg_lambda = config.l2_reg_lambda
 
-        # Placeholders
-        self.batch_size = tf.placeholder(dtype=tf.int32, shape=[], name='batch_size')
-        self.input_x = tf.placeholder(dtype=tf.int32, shape=[None, self.max_length], name='input_x')
-        self.input_y = tf.placeholder(dtype=tf.int64, shape=[None], name='input_y')
-        self.keep_prob = tf.placeholder(dtype=tf.float32, shape=[], name='keep_prob')
-        self.sequence_length = tf.placeholder(dtype=tf.int32, shape=[None], name='sequence_length')
-
-        # L2 loss
-        self.l2_loss = tf.constant(0.0)
-
         # Word embedding
-        with tf.device('/cpu:0'), tf.name_scope('embedding'):
-            embedding = tf.Variable(tf.random_uniform([self.vocab_size, self.embedding_size], -1.0, 1.0),
-                                    name="embedding")
-            embed = tf.nn.embedding_lookup(embedding, self.input_x)
-            inputs = tf.expand_dims(embed, -1)
+        self.embedding = nn.Embedding(self.vocab_size, self.embedding_size)
+
+        # Convolutional layers with different lengths of filters in parallel
+        # No max-pooling
+
+        self.conv_layers = nn.ModuleList([
+            nn.Conv2d(1, self.num_filters, (filter_size, self.embedding_size))
+            for filter_size in self.filter_sizes
+        ])
 
         # Input dropout
-        inputs = tf.nn.dropout(inputs, keep_prob=self.keep_prob)
-
-        conv_outputs = []
-        max_feature_length = self.max_length - max(self.filter_sizes) + 1
-        # Convolutional layer with different lengths of filters in parallel
-        # No max-pooling
-        for i, filter_size in enumerate(self.filter_sizes):
-            with tf.variable_scope('conv-%s' % filter_size):
-                # [filter size, embedding size, channels, number of filters]
-                filter_shape = [filter_size, self.embedding_size, 1, self.num_filters]
-                W = tf.get_variable('weights', filter_shape, initializer=tf.truncated_normal_initializer(stddev=0.1))
-                b = tf.get_variable('biases', [self.num_filters], initializer=tf.constant_initializer(0.0))
-
-                # Convolution
-                conv = tf.nn.conv2d(inputs,
-                                    W,
-                                    strides=[1, 1, 1, 1],
-                                    padding='VALID',
-                                    name='conv')
-                # Activation function
-                h = tf.nn.relu(tf.nn.bias_add(conv, b), name='relu')
-
-                # Remove channel dimension
-                h_reshape = tf.squeeze(h, [2])
-                # Cut the feature sequence at the end based on the maximum filter length
-                h_reshape = h_reshape[:, :max_feature_length, :]
-
-                conv_outputs.append(h_reshape)
-
-        # Concatenate the outputs from different filters
-        if len(self.filter_sizes) > 1:
-            rnn_inputs = tf.concat(conv_outputs, -1)
-        else:
-            rnn_inputs = h_reshape
+        self.dropout = nn.Dropout(config.keep_prob)
 
         # LSTM cell
-        cell = tf.contrib.rnn.LSTMCell(self.hidden_size,
-                                       forget_bias=1.0,
-                                       state_is_tuple=True,
-                                       reuse=tf.get_variable_scope().reuse)
-        # Add dropout to LSTM cell
-        cell = tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=self.keep_prob)
+        self.lstm = nn.LSTM(
+            self.hidden_size,
+            self.hidden_size,
+            num_layers=self.num_layers,
+            batch_first=True,
+            dropout=config.keep_prob
+        )
 
-        # Stacked LSTMs
-        cell = tf.contrib.rnn.MultiRNNCell([cell]*self.num_layers, state_is_tuple=True)
-
-        self._initial_state = cell.zero_state(self.batch_size, dtype=tf.float32)
-
-        # Feed the CNN outputs to LSTM network
-        with tf.variable_scope('LSTM'):
-            outputs, state = tf.nn.dynamic_rnn(cell,
-                                               rnn_inputs,
-                                               initial_state=self._initial_state,
-                                               sequence_length=self.sequence_length)
-            self.final_state = state
+        # Attention layer
+        self.attention = Attention(self.hidden_size)
 
         # Softmax output layer
-        with tf.name_scope('softmax'):
-            softmax_w = tf.get_variable('softmax_w', shape=[self.hidden_size, self.num_classes], dtype=tf.float32)
-            softmax_b = tf.get_variable('softmax_b', shape=[self.num_classes], dtype=tf.float32)
+        self.output = nn.Sequential(
+            nn.Linear(self.hidden_size, self.num_classes)
+        )
 
-            # L2 regularization for output layer
-            self.l2_loss += tf.nn.l2_loss(softmax_w)
-            self.l2_loss += tf.nn.l2_loss(softmax_b)
+        self.l2_loss = 0
 
-            # logits
-            self.logits = tf.matmul(self.final_state[self.num_layers - 1].h, softmax_w) + softmax_b
-            predictions = tf.nn.softmax(self.logits)
-            self.predictions = tf.argmax(predictions, 1, name='predictions')
+    # input_ids = torch.tensor(input_ids, device="cpu")
+    def forward(self, input_ids, lengths):
+        # Word embedding
+        embed = self.embedding(input_ids)
 
-        # Loss
-        with tf.name_scope('loss'):
-            losses = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.input_y, logits=self.logits)
-            self.cost = tf.reduce_mean(losses) + self.l2_reg_lambda * self.l2_loss
+        # Add channel dimension
+        embed = embed.unsqueeze(1)
 
-        # Accuracy
-        with tf.name_scope('accuracy'):
-            correct_predictions = tf.equal(self.predictions, self.input_y)
-            self.correct_num = tf.reduce_sum(tf.cast(correct_predictions, tf.float32))
-            self.accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32), name='accuracy')
+        # Convolutional layers with different lengths of filters in parallel
+        conv_outputs = []
+        for conv_layer in self.conv_layers:
+            conv_output = F.relu(conv_layer(embed))
+            conv_output = conv_output.squeeze(3)
+            conv_outputs.append(conv_output)
+
+
+
+        # Maximale Länge berechnen
+        max_length = max([t.shape[2] for t in conv_outputs])
+
+        # Tensoren mit Padding auf gleiche Länge bringen
+        padded_tensors = []
+        for tensor in conv_outputs:
+            padded_tensor = torch.nn.functional.pad(tensor, (0, max_length - tensor.shape[2]), value=0)
+            padded_tensors.append(padded_tensor)
+
+
+        # Concatenate the outputs of the convolutional layers
+        concat_output = torch.cat(padded_tensors, 1)
+
+        # Apply input dropout
+        concat_output = self.dropout(concat_output)
+
+        # Reshape for LSTM input
+        sorted_lengths, sorted_idx = lengths.sort(0, descending=True)
+        sorted_concat_output = concat_output[sorted_idx]
+        packed_sequence = pack_padded_sequence(sorted_concat_output, sorted_lengths, batch_first=True)
+
+        # LSTM layer
+        packed_lstm_output, _ = self.lstm(packed_sequence)
+
+        # Unpack the packed sequence to retrieve the LSTM output tensor
+        lstm_output, _ = pad_packed_sequence(packed_lstm_output, batch_first=True)
+
+        # Apply dropout
+        lstm_output = self.dropout(lstm_output)
+
+        # Attention layer
+        attention_output, attention_weights = self.attention(lstm_output)
+
+        # Softmax output layer
+        output = torch.nn.functional.softmax(self.output(attention_output))
+
+        # Compute L2 weight regularization loss
+        for param in self.parameters():
+            self.l2_loss += torch.norm(param, 2)
+
+        return output
