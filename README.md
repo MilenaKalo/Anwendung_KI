@@ -4,6 +4,11 @@ Implemention of C-LSTM for text classification problem.
 * The proposed C-LSTM model given in below paper is used for text classification.
 * Paper: A C-LSTM Neural Network for Text Classification
 * Link : https://arxiv.org/abs/1511.08630
+
+## Model Architecture
+* file clstm_classifier.py contains the model architecture from C-LSTM with Attention model
+* file model2.py contains the model architecture from C-LSTM from Paper with Word2Vec 
+* train.py(clstm_classifier) and train2.py(model2) are the training files for the above models respectively
 ## Requirements  
 * Python 3.7  
 * Tensorflow 1.14.0!pip install tensorflow==1.14.0

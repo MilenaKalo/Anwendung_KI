@@ -29,22 +29,21 @@ max_length = 0
 # Model Hyperparameters
 embedding_size = 256  # kann geändert werden
 filter_sizes = '3, 4, 5'
-num_filters = 18 # fix
-hidden_size = 34  # fix
-num_layers = 2  # kann geändert werden
+num_filters = 18  # fix
+hidden_size = 68  # fix # 1. 34
+num_layers = 3 # mit 1.  2
 keep_prob = 0.5  # aus paper
 learning_rate = 0.1
 l2_reg_lambda = 0.001
 num_classes = 2
 
 # Training parameters
-batch_size = 32
-num_epochs = 50
+batch_size = 64
+num_epochs = 100
 decay_rate = 1
 decay_steps = 100000
 evaluate_every_steps = 10
 save_every_steps = 50
-
 
 # Output files directory
 timestamp = str(int(time.time())) + '_' + 'train2'
@@ -74,8 +73,14 @@ max_length = vocab_processor.max_document_length
 x_train, x_valid, y_train, y_valid, train_lengths, valid_lengths = train_test_split(data,
                                                                                     labels,
                                                                                     lengths,
-                                                                                    test_size=0.1,
+                                                                                    test_size=0.3,
                                                                                     random_state=22)
+# Split test set
+x_valid, x_test, y_valid, y_test, valid_lengths, test_lengths = train_test_split(x_valid,
+                                                                                 y_valid,
+                                                                                 valid_lengths,
+                                                                                 test_size=0.5,
+                                                                                 random_state=22)
 
 # Batch iterator
 train_data = data_helper.batch_iter(x_train, y_train, train_lengths, batch_size, num_epochs)
@@ -160,8 +165,11 @@ with open(os.path.join(outdir, 'log.txt'), 'w') as f:
                 _, predicted = torch.max(outputs.data, 1)
                 correct = (predicted == y_valid).sum().item()
                 accuracy = correct / y_valid.size(0)
-                f.write('Step [{}/{}], Loss: {:.4f}, Accuracy: {:.4f}\n'.format(total_step, num_epochs * len(x_train),
-                                                                                loss.item(), accuracy))
+                valid_loss = criterion(outputs, y_valid)
+                f.write('Step [{}/{}], Valid_Loss: {:.4f}, Valid_Accuracy: {:.4f}\n'.format(total_step,
+                                                                                            num_epochs * len(x_train),
+                                                                                            valid_loss.item(),
+                                                                                            accuracy))
 
                 # Save model if the accuracy is improved
                 if accuracy > best_accuracy:
@@ -191,15 +199,48 @@ with open(os.path.join(outdir, 'log.txt'), 'w') as f:
         # Check standard deviation
         if len(losses) >= std_steps:
             std = np.std(losses)
+            f.write('std: {:.4f}\n'.format(std))
             mean = np.mean(losses)
+            f.write('mean: {:.4f}\n'.format(mean))
+            f.write('mean + std: {:.4f}\n'.format(mean + std))
             if loss.item() > mean + std:
                 print("Loss greater than mean + std!")
 
     # Plot Loss
     plt.figure()
     plt.plot(losses, label='Loss')
-    plt.xlabel('Loss')
-    plt.ylabel('Steps')
+    plt.xlabel('Steps')
+    plt.ylabel('Loss')
     plt.legend()
 
-    plt.savefig(os.path.join(outdir, 'plot.png'))
+    plt.savefig(os.path.join(outdir, 'plot_train_loss.png'))
+
+# Test the model
+model.eval()
+
+# Prepare test data
+x_test = x_test  # Test data
+y_test = y_test  # Test labels
+test_lengths = test_lengths  # Test data lengths
+
+x_test = torch.tensor(x_test, device="cpu")
+y_test = torch.tensor(y_test, device="cpu")
+test_lengths = torch.tensor(test_lengths, device="cpu")
+
+# Evaluate the model on test data
+with torch.no_grad():
+    outputs = model(x_test, test_lengths)
+    _, predicted = torch.max(outputs.data, 1)
+    correct = (predicted == y_test).sum().item()
+    accuracy = correct / y_test.size(0)
+    # Compute the test loss
+    test_loss = criterion(outputs, y_test)
+
+# Print the test accuracy and loss
+print('Test Accuracy: {:.4f}'.format(accuracy))
+print('Test Loss: {:.4f}'.format(test_loss.item()))
+
+# Save the test accuracy and loss to log file
+with open(os.path.join(outdir, 'log.txt'), 'a') as f:
+    f.write('Test Accuracy: {:.4f}\n'.format(accuracy))
+    f.write('Test Loss: {:.4f}\n'.format(test_loss.item()))
