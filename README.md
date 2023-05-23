@@ -30,7 +30,11 @@ git repository for C-LSTM implementation
 ```
 https://github.com/KifayatMsd/C-LSTM-text-classification.git
 ```
-
+## Runtime Error
+If you get the Runtime error while running the code:
+```
+run the file again 
+```
 
 ## Train
 Run train.py or train2.py to train the models.
