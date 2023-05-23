@@ -1,0 +1,285 @@
+Epoch [1/50]
+total_step: 1.0
+loss: 0.6934
+Epoch [2/50]
+total_step: 2.0
+loss: 0.6932
+Epoch [3/50]
+total_step: 3.0
+loss: 0.6931
+Epoch [4/50]
+total_step: 4.0
+loss: 0.6932
+Epoch [5/50]
+total_step: 5.0
+loss: 0.6930
+Epoch [6/50]
+total_step: 6.0
+loss: 0.6929
+Epoch [7/50]
+total_step: 7.0
+loss: 0.6931
+Epoch [8/50]
+total_step: 8.0
+loss: 0.6929
+Epoch [9/50]
+total_step: 9.0
+loss: 0.6928
+Epoch [10/50]
+total_step: 10.0
+loss: 0.6923
+Step [10.0/373150], Valid_Loss: 0.6929, Valid_Accuracy: 0.5109
+Step: [10.0/373150], Validation Accuracy: 0.5109 *
+std: 0.0003
+mean: 0.6930
+mean + std: 0.6933
+Epoch [11/50]
+total_step: 11.0
+loss: 0.6923
+std: 0.0003
+mean: 0.6929
+mean + std: 0.6933
+Epoch [12/50]
+total_step: 12.0
+loss: 0.6922
+std: 0.0004
+mean: 0.6929
+mean + std: 0.6933
+Epoch [13/50]
+total_step: 13.0
+loss: 0.6919
+std: 0.0005
+mean: 0.6928
+mean + std: 0.6933
+Epoch [14/50]
+total_step: 14.0
+loss: 0.6917
+std: 0.0005
+mean: 0.6927
+mean + std: 0.6932
+Epoch [15/50]
+total_step: 15.0
+loss: 0.6913
+std: 0.0006
+mean: 0.6926
+mean + std: 0.6932
+Epoch [16/50]
+total_step: 16.0
+loss: 0.6909
+std: 0.0007
+mean: 0.6925
+mean + std: 0.6932
+Epoch [17/50]
+total_step: 17.0
+loss: 0.6903
+std: 0.0009
+mean: 0.6924
+mean + std: 0.6933
+Epoch [18/50]
+total_step: 18.0
+loss: 0.6896
+std: 0.0011
+mean: 0.6922
+mean + std: 0.6933
+Epoch [19/50]
+total_step: 19.0
+loss: 0.6885
+std: 0.0013
+mean: 0.6920
+mean + std: 0.6934
+Epoch [20/50]
+total_step: 20.0
+loss: 0.6871
+Step [20.0/373150], Valid_Loss: 0.6929, Valid_Accuracy: 0.5109
+Step: [20.0/373150], Validation Accuracy: 0.5109 
+std: 0.0017
+mean: 0.6918
+mean + std: 0.6935
+Epoch [21/50]
+total_step: 21.0
+loss: 0.6851
+std: 0.0022
+mean: 0.6915
+mean + std: 0.6936
+Epoch [22/50]
+total_step: 22.0
+loss: 0.6824
+std: 0.0028
+mean: 0.6911
+mean + std: 0.6939
+Epoch [23/50]
+total_step: 23.0
+loss: 0.6786
+std: 0.0038
+mean: 0.6905
+mean + std: 0.6943
+Epoch [24/50]
+total_step: 24.0
+loss: 0.6731
+std: 0.0051
+mean: 0.6898
+mean + std: 0.6949
+Epoch [25/50]
+total_step: 25.0
+loss: 0.6657
+std: 0.0069
+mean: 0.6888
+mean + std: 0.6957
+Epoch [26/50]
+total_step: 26.0
+loss: 0.6558
+std: 0.0092
+mean: 0.6876
+mean + std: 0.6968
+Epoch [27/50]
+total_step: 27.0
+loss: 0.6430
+std: 0.0124
+mean: 0.6859
+mean + std: 0.6983
+Epoch [28/50]
+total_step: 28.0
+loss: 0.6276
+std: 0.0163
+mean: 0.6838
+mean + std: 0.7001
+Epoch [29/50]
+total_step: 29.0
+loss: 0.6109
+std: 0.0208
+mean: 0.6813
+mean + std: 0.7021
+Epoch [30/50]
+total_step: 30.0
+loss: 0.5937
+Step [30.0/373150], Valid_Loss: 0.6945, Valid_Accuracy: 0.5153
+Step: [30.0/373150], Validation Accuracy: 0.5153 *
+std: 0.0258
+mean: 0.6784
+mean + std: 0.7042
+Epoch [31/50]
+total_step: 31.0
+loss: 0.5760
+std: 0.0312
+mean: 0.6751
+mean + std: 0.7063
+Epoch [32/50]
+total_step: 32.0
+loss: 0.5597
+std: 0.0367
+mean: 0.6715
+mean + std: 0.7082
+Epoch [33/50]
+total_step: 33.0
+loss: 0.5455
+std: 0.0421
+mean: 0.6677
+mean + std: 0.7097
+Epoch [34/50]
+total_step: 34.0
+loss: 0.5330
+std: 0.0473
+mean: 0.6637
+mean + std: 0.7110
+Epoch [35/50]
+total_step: 35.0
+loss: 0.5214
+std: 0.0523
+mean: 0.6596
+mean + std: 0.7119
+Epoch [36/50]
+total_step: 36.0
+loss: 0.5104
+std: 0.0571
+mean: 0.6555
+mean + std: 0.7126
+Epoch [37/50]
+total_step: 37.0
+loss: 0.5009
+std: 0.0616
+mean: 0.6513
+mean + std: 0.7130
+Epoch [38/50]
+total_step: 38.0
+loss: 0.4919
+std: 0.0660
+mean: 0.6471
+mean + std: 0.7131
+Epoch [39/50]
+total_step: 39.0
+loss: 0.4852
+std: 0.0700
+mean: 0.6430
+mean + std: 0.7129
+Epoch [40/50]
+total_step: 40.0
+loss: 0.4781
+Step [40.0/373150], Valid_Loss: 0.7187, Valid_Accuracy: 0.5159
+Step: [40.0/373150], Validation Accuracy: 0.5159 *
+std: 0.0737
+mean: 0.6388
+mean + std: 0.7126
+Epoch [41/50]
+total_step: 41.0
+loss: 0.4722
+std: 0.0772
+mean: 0.6348
+mean + std: 0.7120
+Epoch [42/50]
+total_step: 42.0
+loss: 0.4666
+std: 0.0805
+mean: 0.6308
+mean + std: 0.7113
+Epoch [43/50]
+total_step: 43.0
+loss: 0.4613
+std: 0.0835
+mean: 0.6268
+mean + std: 0.7104
+Epoch [44/50]
+total_step: 44.0
+loss: 0.4561
+std: 0.0864
+mean: 0.6230
+mean + std: 0.7094
+Epoch [45/50]
+total_step: 45.0
+loss: 0.4510
+std: 0.0891
+mean: 0.6191
+mean + std: 0.7083
+Epoch [46/50]
+total_step: 46.0
+loss: 0.4460
+std: 0.0917
+mean: 0.6154
+mean + std: 0.7071
+Epoch [47/50]
+total_step: 47.0
+loss: 0.4410
+std: 0.0942
+mean: 0.6117
+mean + std: 0.7058
+Epoch [48/50]
+total_step: 48.0
+loss: 0.4361
+std: 0.0965
+mean: 0.6080
+mean + std: 0.7045
+Epoch [49/50]
+total_step: 49.0
+loss: 0.4312
+std: 0.0987
+mean: 0.6044
+mean + std: 0.7031
+Epoch [50/50]
+total_step: 50.0
+loss: 0.4262
+Step [50.0/373150], Valid_Loss: 0.7419, Valid_Accuracy: 0.5109
+Step: [50.0/373150], Validation Accuracy: 0.5109 
+std: 0.1009
+mean: 0.6008
+mean + std: 0.7017
+Test Accuracy: 0.5094
+Test Loss: 0.7503

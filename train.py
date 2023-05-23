@@ -27,18 +27,18 @@ vocab_size = 0
 max_length = 0
 
 # Model Hyperparameters
-embedding_size = 256  # kann geändert werden
+embedding_size = 300  # kann geändert werden
 filter_sizes = '3, 4, 5'
 num_filters = 18  # fix
 hidden_size = 64  # fix
 num_layers = 3  # kann geändert werden
 keep_prob = 0.5  # aus paper
-learning_rate = 0.01
+learning_rate = 0.001
 l2_reg_lambda = 0.001
 
 # Training parameters
 batch_size = 128
-num_epochs = 50
+num_epochs = 100
 decay_rate = 1
 decay_steps = 100000
 evaluate_every_steps = 10
@@ -109,7 +109,7 @@ model = CLSTM(config)
 # Loss and optimizer
 
 criterion = torch.nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 # Train the model
 
